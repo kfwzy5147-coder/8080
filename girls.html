@@ -39,7 +39,7 @@
         .win-title { color: var(--accent-gold); font-size: 26px; font-weight: 900; margin-bottom: 10px; }
         .win-prize { font-size: 22px; color: var(--accent-green); font-weight: bold; margin: 15px 0; padding: 15px; background: rgba(0, 245, 212, 0.1); border-radius: 12px; border: 1px dashed var(--accent-green); }
         .lose-title { color: var(--accent-pink); font-size: 22px; font-weight: bold; margin-bottom: 10px; }
-        .counter-badge { font-size: 14px; color: var(--accent-gold); margin-top: 15px; font-weight: bold; }
+        .counter-badge { font-size: 15px; color: var(--accent-gold); margin-top: 15px; font-weight: bold; }
         .footer-credit { text-align: center; font-size: 14px; color: var(--text-muted); margin-top: 20px; font-weight: bold; direction: ltr; }
         .admin-panel { display: none; background: #230d1c; border-radius: 20px; padding: 20px; margin-top: 20px; border: 2px solid var(--accent-gold); }
         .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
@@ -47,8 +47,6 @@
         .admin-table th { background: rgba(255, 183, 3, 0.2); color: var(--accent-gold); }
         .btn-danger { background: var(--accent-pink); color: #fff; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: bold; }
         .btn-export { background: var(--accent-green); color: #000; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: bold; margin-right: 10px; }
-        .loader { display: none; margin: 10px auto; border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--accent-pink); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -67,9 +65,8 @@
             <form id="drawForm">
                 <div class="form-group">
                     <label>الاسم الثلاثي 👤</label>
-                    <input type="text" id="userName" placeholder="ادخلي اسمك بالكامل" required>
+                    <input type="text" id="userName" placeholder="ادخلي اسمك بالكامل" required autocomplete="off">
                 </div>
-                <div class="loader" id="loadingSpinner"></div>
                 <button type="submit" class="btn-submit" id="submitBtn">دخول السحب ومعرفة النتيجة ✨</button>
             </form>
         </div>
@@ -109,99 +106,68 @@
     <script>
         var isAdmin = window.location.search.indexOf('admin=true') !== -1;
 
-        // --- حظر المتصفحات وإجبار Google Chrome ---
-        (function enforceChromeOnly() {
-            var ua = navigator.userAgent;
-            var isBrave = (navigator.brave && typeof navigator.brave.isBrave === 'function');
-            var isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor) && !isBrave && !/Edg|OPR|FBAN|FBAV|Instagram|Brave/.test(ua);
-
-            if (!isChrome && !isAdmin) {
-                window.onload = function() {
-                    document.body.innerHTML = `
-                        <div style="background:#190a14; color:#fff; min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; font-family:'Tajawal', sans-serif; direction:rtl;">
-                            <h1 style="font-size:70px; margin-bottom:10px;">🚫</h1>
-                            <h2 style="color:#ffb703; margin-bottom:15px; font-size:24px;">عذراً! يجب استخدام متصفح Google Chrome</h2>
-                            <p style="color:#b5a6b0; font-size:17px; max-width:380px; line-height:1.6;">
-                                لضمان تسجيل بياناتك ودخولك السحب بنجاح، يرجى فتح هذا الرابط من داخل تطبيق <b>Google Chrome الاصلي</b> فقط.
-                            </p>
-                            <br>
-                            <div style="background:rgba(255,255,255,0.05); padding:12px 20px; border-radius:10px; color:#00f5d4; font-weight:bold; border:1px solid rgba(255,255,255,0.1);">
-                                انسخي الرابط وافتحيه داخل تطبيق Chrome 🚀
-                            </div>
-                        </div>
-                    `;
-                };
-            }
-        })();
-
-        // --- إعداد قاعدة بيانات Firebase الموحدة للجميع ---
+        // --- ربط داتابيز جوجل اللحظي الفوري ---
         const firebaseConfig = {
             databaseURL: "https://augustine-draw-default-rtdb.firebaseio.com/"
         };
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database().ref('girls_giveaway_v5');
+        const db = firebase.database().ref('girls_giveaway_v8');
 
-        function fetchCloudParticipants() {
-            return new Promise((resolve) => {
-                db.once('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (!data) resolve([]);
-                    const list = Object.values(data);
-                    list.sort((a, b) => a.id - b.id);
-                    resolve(list);
-                }, () => resolve([]));
-            });
-        }
+        let currentParticipants = [];
+
+        // الاستماع الفوري والمباشر للتغييرات
+        db.on('value', (snapshot) => {
+            const data = snapshot.val();
+            currentParticipants = data ? Object.values(data).sort((a, b) => a.id - b.id) : [];
+            if (isAdmin) renderAdminTable();
+        });
 
         if (isAdmin) {
             document.getElementById('formCard').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
-            renderAdminTable();
         }
 
         const playWinSound = () => {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(523.25, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.5);
-            gain.gain.setValueAtTime(0.3, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.5);
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.5);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.5);
+            } catch(e){}
         };
 
         const playLoseSound = () => {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(200, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.4);
-            gain.gain.setValueAtTime(0.2, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.4);
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } catch(e){}
         };
 
-        document.getElementById('drawForm').addEventListener('submit', async function(e) {
+        document.getElementById('drawForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const name = document.getElementById('userName').value.trim();
+            if (!name) return;
 
-            const submitBtn = document.getElementById('submitBtn');
-            const spinner = document.getElementById('loadingSpinner');
-            submitBtn.style.display = 'none';
-            spinner.style.display = 'block';
-
-            let participants = await fetchCloudParticipants();
-
-            const hasPlayed = localStorage.getItem('girls_played_device_v5');
-            const nameExists = participants.some(p => p.name.toLowerCase() === name.toLowerCase());
+            const hasPlayed = localStorage.getItem('girls_played_device_v8');
+            const nameExists = currentParticipants.some(p => p.name.toLowerCase() === name.toLowerCase());
 
             const formCard = document.getElementById('formCard');
             const resultCard = document.getElementById('resultCard');
@@ -221,7 +187,8 @@
                 return;
             }
 
-            const currentNum = participants.length + 1;
+            // حساب ترتيب السحب السحابي الموحد الحقيقي
+            const currentNum = currentParticipants.length + 1;
             const now = new Date();
             const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
             
@@ -253,22 +220,21 @@
 
             participantNum.innerText = `أنت المشاركة رقم #${currentNum} في السحب الموحد`;
 
-            localStorage.setItem('girls_played_device_v5', 'true');
-            await db.push({ id: currentNum, name: name, status: status, time: timeStr });
+            localStorage.setItem('girls_played_device_v8', 'true');
+            // حفظ فوري ومباشر في السيرفر
+            db.push({ id: currentNum, name: name, status: status, time: timeStr });
         });
 
-        async function renderAdminTable() {
+        function renderAdminTable() {
             const tbody = document.getElementById('adminTableBody');
-            tbody.innerHTML = '<tr><td colspan="4">جاري جلب التسجيلات الحية... ⏳</td></tr>';
-            const data = await fetchCloudParticipants();
             tbody.innerHTML = '';
             
-            if (data.length === 0) {
+            if (currentParticipants.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4">لا يوجد مشاركات حتى الآن 📭</td></tr>';
                 return;
             }
 
-            data.forEach(item => {
+            currentParticipants.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${item.id}</td>
@@ -280,12 +246,13 @@
             });
         }
 
-        async function resetSystemData() {
+        function resetSystemData() {
             if (confirm("هل أنت تأكدي من تصفير داتابيز السحب بالكامل ورجوع العداد لـ 0؟")) {
-                await db.remove();
-                localStorage.removeItem('girls_played_device_v5');
-                alert("تم تصفير الداتابيز بنجاح!");
-                window.location.href = window.location.pathname + '?admin=true';
+                db.remove().then(() => {
+                    localStorage.removeItem('girls_played_device_v8');
+                    alert("تم تصفير الداتابيز بنجاح!");
+                    window.location.href = window.location.pathname + '?admin=true';
+                });
             }
         }
 
@@ -293,11 +260,10 @@
             window.location.href = window.location.pathname;
         }
 
-        async function exportData() {
-            const data = await fetchCloudParticipants();
+        function exportData() {
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
             csvContent += "الترتيب,الاسم,الحالة,الوقت\n";
-            data.forEach(r => {
+            currentParticipants.forEach(r => {
                 csvContent += `${r.id},"${r.name}","${r.status}","${r.time}"\n`;
             });
             const encodedUri = encodeURI(csvContent);
