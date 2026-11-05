@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سحب البنات - أسرة القديس اغسطينوس 🎁</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font - Tajawal -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * { font-family: 'Tajawal', sans-serif; }
+        .bg-pattern {
+            background-color: #1a0f1f;
+            background-image: radial-gradient(#4a2b56 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .glow-card { box-shadow: 0 0 35px -5px rgba(244, 114, 182, 0.3); }
+    </style>
+</head>
+<body class="bg-pattern min-h-screen text-slate-100 flex flex-col items-center justify-between p-4 selection:bg-pink-500 selection:text-white">
+
+    <!-- Header Section -->
+    <header class="w-full max-w-lg text-center pt-4 pb-2">
+        <div class="inline-block select-none">
+            <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-pink-500 to-amber-400 rounded-3xl p-1 shadow-xl flex items-center justify-center">
+                <div class="w-full h-full bg-slate-900 rounded-[22px] flex items-center justify-center border border-white/10">
+                    <span class="text-3xl">👑</span>
+                </div>
+            </div>
+            <h1 class="text-2xl font-black mt-3 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-amber-300 to-pink-300">
+                سحب البنات - أسرة القديس اغسطينوس
+            </h1>
+            <p id="page-subtitle" class="text-xs text-slate-400 mt-1 font-medium">سحب الهدية الكبرى للبنات 🎁✨</p>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-lg my-auto py-4">
+        
+        <!-- PUBLIC VIEW: Registration Form Card -->
+        <div id="form-card" class="bg-slate-900/90 backdrop-blur-xl border border-pink-900/40 rounded-3xl p-6 sm:p-8 glow-card shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-12 -right-12 w-28 h-28 bg-pink-500/10 rounded-full blur-2xl"></div>
+            
+            <div class="text-center mb-6">
+                <span class="inline-block px-3 py-1 bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-bold rounded-full mb-2">
+                    🙋‍♀️ سحب خاص بالبنات فقط
+                </span>
+                <h2 class="text-xl font-bold text-white">سجلي اسمك لتدخلي السحب</h2>
+                <p class="text-xs text-slate-400 mt-1">اكتبي اسمك ورقم تليفونك واعرفي حظك فوري!</p>
+            </div>
+
+            <form id="draw-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">الاسم الثلاثي 👤</label>
+                    <input type="text" id="user-name" required placeholder="ادخلي اسمك بالكامل"
+                        class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">رقم الموبايل 📱</label>
+                    <input type="tel" id="user-phone" required placeholder="01xxxxxxxxx" pattern="[0-9]{11}" title="يرجى كتابة رقم تليفون مكون من 11 رقم"
+                        class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all">
+                </div>
+
+                <button type="submit" id="submit-btn"
+                    class="w-full bg-gradient-to-r from-pink-500 to-amber-500 hover:from-pink-600 hover:to-amber-600 active:scale-98 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-pink-500/25 transition-all text-base flex items-center justify-center gap-2">
+                    <span>دخول السحب ومعرفة النتيجة</span>
+                    <span>✨</span>
+                </button>
+            </form>
+
+            <!-- Counter Footer inside Card -->
+            <div class="mt-6 pt-4 border-t border-slate-800/80 text-center">
+                <p class="text-xs text-slate-400">
+                    📊 إجمالي البنات المشتركات: <span id="live-public-counter" class="font-extrabold text-amber-400 text-sm">...</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- PUBLIC VIEW: Result View Card -->
+        <div id="result-card" class="hidden bg-slate-900/90 backdrop-blur-xl border border-pink-900/40 rounded-3xl p-6 sm:p-8 glow-card shadow-2xl text-center relative overflow-hidden">
+            <div class="mb-4">
+                <span id="result-badge" class="inline-block px-3 py-1 bg-slate-800 border border-slate-700 text-xs font-bold rounded-full text-slate-300">
+                    نتيجة السحب الخاصة بكِ 🎲
+                </span>
+            </div>
+
+            <h2 id="result-title" class="text-2xl font-black text-white mb-2"></h2>
+            <p id="result-message" class="text-sm text-slate-300 mb-6 leading-relaxed"></p>
+
+            <div id="result-box" class="my-4"></div>
+
+            <div class="mt-6 pt-4 border-t border-slate-800 text-xs text-slate-500">
+                شكراً لمشاركتك معنا في اجتماع الأسرة ❤️
+            </div>
+        </div>
+
+        <!-- ADMIN VIEW: Independent Panel & Database View -->
+        <div id="admin-panel-view" class="hidden bg-slate-900/95 backdrop-blur-xl border border-amber-500/30 rounded-3xl p-6 shadow-2xl relative">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                <div>
+                    <h2 class="text-xl font-black text-amber-400">👑 لوحة أدمن مسابقة البنات</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">إدارة السحب ومتابعة سجل دخول البنات</p>
+                </div>
+                <button onclick="logoutAdmin()" class="bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 text-xs font-bold px-3 py-1.5 rounded-lg border border-pink-500/30">
+                    خروج 🚪
+                </button>
+            </div>
+
+            <!-- Global Stats -->
+            <div class="grid grid-cols-2 gap-3 my-4">
+                <div class="bg-slate-800/80 border border-slate-700 p-4 rounded-2xl text-center">
+                    <p class="text-xs text-slate-400">إجمالي المشتركات (بنات) 📊</p>
+                    <p id="admin-counter" class="text-3xl font-black text-amber-400 mt-1">0</p>
+                </div>
+                <div class="bg-slate-800/80 border border-slate-700 p-4 rounded-2xl text-center">
+                    <p class="text-xs text-slate-400">حالة الجائزة 🎁</p>
+                    <p id="admin-winner-status" class="text-sm font-bold text-slate-300 mt-2">لم تُحسم بعد</p>
+                </div>
+            </div>
+
+            <!-- Preview Audio/Screens -->
+            <div class="mb-5 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+                <p class="text-xs font-bold text-slate-300 mb-2">🎧 معاينة تجريبية للأصوات والشاشات:</p>
+                <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                    <button onclick="previewState('lose')" class="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl text-slate-300 border border-slate-700">
+                        خسارة 🔊
+                    </button>
+                    <button onclick="previewState('win')" class="bg-emerald-950/60 hover:bg-emerald-900/60 p-2 rounded-xl text-emerald-300 border border-emerald-500/30">
+                        فوز 🎁🎉
+                    </button>
+                    <button onclick="previewState('late')" class="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl text-slate-300 border border-slate-700">
+                        تأخير 🦗
+                    </button>
+                </div>
+            </div>
+
+            <!-- Database Records Table -->
+            <div class="mb-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-sm font-bold text-slate-200">📂 داتابيز البنات (Girls Live Database):</h3>
+                    <button onclick="downloadCSV()" class="text-xs text-teal-400 hover:underline">تصدير الداتابيز 📥</button>
+                </div>
+                <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-2 max-h-56 overflow-y-auto">
+                    <table class="w-full text-right text-xs">
+                        <thead>
+                            <tr class="text-slate-400 border-b border-slate-800 pb-1">
+                                <th class="p-1.5">#</th>
+                                <th class="p-1.5">الاسم</th>
+                                <th class="p-1.5">التليفون</th>
+                                <th class="p-1.5">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="database-tbody" class="divide-y divide-slate-800/50 text-slate-300">
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-slate-500">لا يوجد تسجيلات حتى الآن</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Admin Reset Actions -->
+            <div class="pt-3 border-t border-slate-800">
+                <button onclick="resetSystemData()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl text-xs transition-colors shadow-lg shadow-rose-600/20">
+                    ⚠️ تصفير داتابيز البنات والبدء من جديد (Reset Girls Draw)
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Credit Section -->
+    <footer class="w-full max-w-lg text-center py-3 border-t border-slate-800/60 mt-auto">
+        <p class="text-xs font-bold text-slate-400 tracking-wide dir-ltr">
+            اعداد / ⌬"𝙆𝘼𝙍𝙊_𝘾𝙎 ⌬ 💻🔥
+        </p>
+    </footer>
+
+    <!-- Application Script -->
+    <script>
+        const LOCAL_STORAGE_USER_RESULT = 'augustine_girls_user_submitted_result';
+        const LOCAL_DATABASE_KEY = 'augustine_girls_draw_db_records';
+        let drawKey = localStorage.getItem('augustine_girls_draw_key') || 'st_augustine_girls_draw_v1';
+
+        function getApiGetUrl() { return `https://api.counterapi.dev/v1/${drawKey}/participants`; }
+        function getApiHitUrl() { return `https://api.counterapi.dev/v1/${drawKey}/participants/up`; }
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('admin')) {
+                showAdminPanel();
+            } else {
+                checkExistingSubmission();
+                fetchGlobalCounter();
+            }
+        };
+
+        async function fetchGlobalCounter() {
+            try {
+                const res = await fetch(getApiGetUrl());
+                const data = await res.json();
+                const count = data.value || data.count || getDbRecords().length;
+                document.getElementById('live-public-counter').innerText = count;
+                return count;
+            } catch(e) {
+                const fallbackCount = getDbRecords().length;
+                document.getElementById('live-public-counter').innerText = fallbackCount;
+                return fallbackCount;
+            }
+        }
+
+        function getDbRecords() {
+            try { return JSON.parse(localStorage.getItem(LOCAL_DATABASE_KEY)) || []; } catch(e) { return []; }
+        }
+
+        function saveDbRecord(record) {
+            const records = getDbRecords();
+            records.push(record);
+            localStorage.setItem(LOCAL_DATABASE_KEY, JSON.stringify(records));
+        }
+
+        function checkExistingSubmission() {
+            const savedData = localStorage.getItem(LOCAL_STORAGE_USER_RESULT);
+            if (savedData) {
+                const userObj = JSON.parse(savedData);
+                renderAlreadySubmittedMessage(userObj);
+            }
+        }
+
+        function renderAlreadySubmittedMessage(userObj) {
+            document.getElementById('form-card').classList.add('hidden');
+            document.getElementById('result-card').classList.remove('hidden');
+
+            document.getElementById('result-title').innerHTML = '⚠️ حاول الاجتماع الجاي';
+            document.getElementById('result-message').innerText = `أهلاً بكِ يا ${userObj.name}، لقد شاركتِ بالفعل في هذا السحب ورقم تليفونك مسجل. غير مسموح بالدخول أكثر من مرة واحدة فقط!`;
+            
+            document.getElementById('result-box').innerHTML = `
+                <div class="bg-amber-500/10 border border-amber-500/20 text-amber-300 p-4 rounded-xl text-xs font-semibold">
+                    📌 نتيجتك المسجلة سابقاً: <br>
+                    <span class="text-sm font-bold text-white mt-1 inline-block">${userObj.statusText}</span>
+                </div>
+            `;
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('user-name').value.trim();
+            const phone = document.getElementById('user-phone').value.trim();
+            const submitBtn = document.getElementById('submit-btn');
+
+            if (!name || !phone) return;
+
+            const dbRecords = getDbRecords();
+            const phoneExists = dbRecords.some(r => r.phone === phone);
+
+            if (phoneExists || localStorage.getItem(LOCAL_STORAGE_USER_RESULT)) {
+                const existing = dbRecords.find(r => r.phone === phone) || { name: name, statusText: 'حاول الاجتماع الجاي' };
+                renderAlreadySubmittedMessage(existing);
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'جاري تسجيل مشاركتك والحساب... ⏳';
+
+            let count = dbRecords.length + 1;
+            try {
+                const res = await fetch(getApiHitUrl());
+                const data = await res.json();
+                count = data.value || data.count || count;
+            } catch(err) {}
+
+            document.getElementById('live-public-counter').innerText = count;
+
+            let statusText = '';
+            let stateType = '';
+
+            if (count >= 1 && count <= 17) {
+                stateType = 'lose';
+                statusText = 'خيرها ف غيرها يصاحبتي (رقم المشاركة #' + count + ')';
+            } else if (count === 18) {
+                stateType = 'win';
+                statusText = '🎉 الفائزة رقم 18 - كسبت كاب هولدر';
+            } else {
+                stateType = 'late';
+                statusText = 'للاسف جيت متاخر حاول الاجتماع الجاي (رقم المشاركة #' + count + ')';
+            }
+
+            const userData = {
+                name: name,
+                phone: phone,
+                count: count,
+                stateType: stateType,
+                statusText: statusText,
+                time: new Date().toLocaleTimeString('ar-EG')
+            };
+
+            localStorage.setItem(LOCAL_STORAGE_USER_RESULT, JSON.stringify(userData));
+            saveDbRecord(userData);
+            displayUserResult(stateType, count);
+        }
+
+        function displayUserResult(stateType, count) {
+            document.getElementById('form-card').classList.add('hidden');
+            document.getElementById('result-card').classList.remove('hidden');
+
+            const resultTitle = document.getElementById('result-title');
+            const resultMsg = document.getElementById('result-message');
+            const resultBox = document.getElementById('result-box');
+
+            if (stateType === 'lose') {
+                resultTitle.innerHTML = '😔 خيرها ف غيرها يصاحبتي!';
+                resultMsg.innerText = 'معلش مش نصيبك المرة دي، تعوضيها السحب الجاي ان شاء الله ❤️!';
+                resultBox.innerHTML = `
+                    <div class="bg-pink-500/10 border border-pink-500/20 text-pink-300 p-3 rounded-xl text-xs font-semibold">
+                        حاول الاجتماع الجاي ⭐️ (رقم مشاركتكِ: #${count})
+                    </div>
+                `;
+                playSound('lose');
+            } else if (stateType === 'win') {
+                resultTitle.innerHTML = '🎉 مبروك كسبت كاب هولدر! 🎁✨';
+                resultMsg.innerText = 'ألف مبروك! انتِ الفائزة رقم 18 معنا النهاردة بحظك السعيد 🎉!';
+                resultBox.innerHTML = `
+                    <div class="bg-gradient-to-r from-emerald-950/60 to-teal-950/60 border-2 border-emerald-500/40 p-4 rounded-xl shadow-inner mb-4">
+                        <p class="text-xs text-emerald-400 font-bold mb-1">🎁 هدية الفوز المقررة لكِ:</p>
+                        <p class="text-xl font-extrabold text-emerald-200">كاب هولدر فاخر ✨</p>
+                        <p class="text-[11px] text-emerald-400 mt-1">احتفظي بكود الاستلام أدناه لإبرازه للخدمة ⤵️</p>
+                    </div>
+                    <div class="bg-amber-500/10 border border-amber-500/30 text-amber-200 p-3 rounded-lg text-xs font-semibold">
+                        🔑 كود الاستلام الخاص بكِ: <br>
+                        <span class="text-lg font-black text-pink-400 bg-slate-800 px-3 py-1 rounded-md shadow-sm inline-block mt-1">GIRLS-18-CAP-HOLDER</span>
+                    </div>
+                `;
+                playSound('win');
+                triggerConfetti();
+            } else if (stateType === 'late') {
+                resultTitle.innerHTML = '🖐️ للاسف جيت متاخر حاول الاجتماع الجاي';
+                resultMsg.innerText = 'للأسف، الفائزة رقم 18 استلمت الهدية خلاص والسحب انتهى!';
+                resultBox.innerHTML = `
+                    <div class="bg-slate-800 border border-slate-700 text-slate-300 p-3 rounded-xl text-xs font-semibold">
+                        شرفتينا ونورتينا بالدخول 🌸 (رقم مشاركتكِ: #${count})
+                    </div>
+                `;
+                playSound('crickets');
+            }
+        }
+
+        function playSound(type) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (type === 'win') {
+                    const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
+                    notes.forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+                        gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.3);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(ctx.currentTime + i * 0.1);
+                        osc.stop(ctx.currentTime + i * 0.1 + 0.3);
+                    });
+                } else if (type === 'lose') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.4);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.4);
+                } else if (type === 'crickets') {
+                    for (let i = 0; i < 3; i++) {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(4500, ctx.currentTime + i * 0.15);
+                        gain.gain.setValueAtTime(0.05, ctx.currentTime + i * 0.15);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.08);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(ctx.currentTime + i * 0.15);
+                        osc.stop(ctx.currentTime + i * 0.15 + 0.08);
+                    }
+                }
+            } catch(e) {}
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        async function showAdminPanel() {
+            document.getElementById('form-card').classList.add('hidden');
+            document.getElementById('result-card').classList.add('hidden');
+            document.getElementById('admin-panel-view').classList.remove('hidden');
+            document.getElementById('page-subtitle').innerText = 'لوحة أدمن مسابقة البنات 🛡️';
+
+            const count = await fetchGlobalCounter();
+            document.getElementById('admin-counter').innerText = count;
+
+            const records = getDbRecords();
+            const winner = records.find(r => r.count === 18);
+            if (winner) {
+                document.getElementById('admin-winner-status').innerHTML = `<span class="text-emerald-400">${winner.name} (${winner.phone})</span>`;
+            } else {
+                document.getElementById('admin-winner-status').innerText = 'في الانتظار (المشاركة #18)';
+            }
+
+            renderDatabaseTable(records);
+        }
+
+        function renderDatabaseTable(records) {
+            const tbody = document.getElementById('database-tbody');
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-500">لا يوجد تسجيلات حتى الآن</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = records.map(r => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="p-1.5 font-bold text-amber-400">#${r.count}</td>
+                    <td class="p-1.5 font-semibold text-white">${r.name}</td>
+                    <td class="p-1.5 text-slate-400">${r.phone}</td>
+                    <td class="p-1.5 font-bold ${r.count === 18 ? 'text-emerald-400' : 'text-slate-400'}">
+                        ${r.count === 18 ? '🏆 كاب هولدر' : (r.count > 18 ? 'متأخر' : 'خسارة')}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function logoutAdmin() {
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.location.href = cleanUrl;
+        }
+
+        function previewState(stateType) {
+            document.getElementById('admin-panel-view').classList.add('hidden');
+            displayUserResult(stateType, stateType === 'win' ? 18 : (stateType === 'lose' ? 5 : 22));
+        }
+
+        function downloadCSV() {
+            const records = getDbRecords();
+            if (!records.length) return alert('الداتابيز فارغة حالياً!');
+            let csv = '\uFEFFالرقم,الاسم,التليفون,الحالة,الوقت\n';
+            records.forEach(r => {
+                csv += `"${r.count}","${r.name}","${r.phone}","${r.statusText}","${r.time}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "girls_giveaway_database.csv";
+            link.click();
+        }
+
+        function resetSystemData() {
+            if (!confirm('هل أنت متأكد من تصفير مسابقة البنات والبدء من الجديد؟')) return;
+            
+            const newKey = 'st_augustine_girls_draw_' + Date.now();
+            localStorage.setItem('augustine_girls_draw_key', newKey);
+            localStorage.removeItem(LOCAL_STORAGE_USER_RESULT);
+            localStorage.removeItem(LOCAL_DATABASE_KEY);
+
+            alert('تم تصفير سحب البنات بنجاح!');
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.location.href = cleanUrl;
+        }
+    </script>
+</body>
+</html>
