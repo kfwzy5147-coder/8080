@@ -17,240 +17,38 @@
             --text-main: #ffffff;
             --text-muted: #8d99ae;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Tajawal', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background-image: radial-gradient(circle at 50% 50%, #1c2541 0%, #0b132b 100%);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 480px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .logo-icon {
-            font-size: 45px;
-            margin-bottom: 5px;
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 50%;
-            border: 2px solid var(--accent-blue);
-            box-shadow: 0 0 20px rgba(58, 134, 255, 0.3);
-        }
-
-        h1 {
-            font-size: 24px;
-            font-weight: 900;
-            color: #fff;
-            margin-bottom: 5px;
-        }
-
-        .subtitle {
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-
-        .card {
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            margin-bottom: 20px;
-        }
-
-        .badge-boys {
-            background: rgba(58, 134, 255, 0.15);
-            color: var(--accent-blue);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 15px;
-            border: 1px solid var(--accent-blue);
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-            text-align: right;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-
-        input {
-            width: 100%;
-            padding: 14px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 16px;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        input:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 10px rgba(58, 134, 255, 0.3);
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, var(--accent-blue), #00b4d8);
-            border: none;
-            border-radius: 12px;
-            color: #fff;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            box-shadow: 0 5px 15px rgba(58, 134, 255, 0.4);
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(58, 134, 255, 0.6);
-        }
-
-        .result-screen {
-            display: none;
-            text-align: center;
-            padding: 20px 0;
-        }
-
-        .win-title {
-            color: var(--accent-gold);
-            font-size: 26px;
-            font-weight: 900;
-            margin-bottom: 10px;
-        }
-
-        .win-prize {
-            font-size: 22px;
-            color: var(--accent-green);
-            font-weight: bold;
-            margin: 15px 0;
-            padding: 15px;
-            background: rgba(0, 245, 212, 0.1);
-            border-radius: 12px;
-            border: 1px dashed var(--accent-green);
-        }
-
-        .lose-title {
-            color: var(--accent-red);
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .counter-badge {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-top: 15px;
-        }
-
-        .footer-credit {
-            text-align: center;
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-top: 20px;
-            font-weight: bold;
-            direction: ltr;
-        }
-
-        .admin-panel {
-            display: none;
-            background: #10172a;
-            border-radius: 20px;
-            padding: 20px;
-            margin-top: 20px;
-            border: 2px solid var(--accent-gold);
-        }
-
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            font-size: 13px;
-        }
-
-        .admin-table th, .admin-table td {
-            padding: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-
-        .admin-table th {
-            background: rgba(255, 190, 11, 0.2);
-            color: var(--accent-gold);
-        }
-
-        .btn-danger {
-            background: var(--accent-red);
-            color: #fff;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-
-        .btn-export {
-            background: var(--accent-green);
-            color: #000;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-
-        .loader {
-            display: none;
-            margin: 10px auto;
-            border: 4px solid rgba(255,255,255,0.1);
-            border-left-color: var(--accent-blue);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px; background-image: radial-gradient(circle at 50% 50%, #1c2541 0%, #0b132b 100%); }
+        .container { width: 100%; max-width: 480px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .logo-icon { font-size: 45px; margin-bottom: 5px; display: inline-block; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 50%; border: 2px solid var(--accent-blue); box-shadow: 0 0 20px rgba(58, 134, 255, 0.3); }
+        h1 { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 5px; }
+        .subtitle { font-size: 14px; color: var(--text-muted); }
+        .card { background: var(--bg-card); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 20px; }
+        .badge-boys { background: rgba(58, 134, 255, 0.15); color: var(--accent-blue); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-block; margin-bottom: 15px; border: 1px solid var(--accent-blue); }
+        .form-group { margin-bottom: 18px; text-align: right; }
+        label { display: block; margin-bottom: 8px; font-size: 14px; color: var(--text-muted); }
+        input { width: 100%; padding: 14px; background: rgba(0, 0, 0, 0.2); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #fff; font-size: 16px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--accent-blue); box-shadow: 0 0 10px rgba(58, 134, 255, 0.3); }
+        .btn-submit { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent-blue), #00b4d8); border: none; border-radius: 12px; color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(58, 134, 255, 0.4); }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(58, 134, 255, 0.6); }
+        .result-screen { display: none; text-align: center; padding: 20px 0; }
+        .win-title { color: var(--accent-gold); font-size: 26px; font-weight: 900; margin-bottom: 10px; }
+        .win-prize { font-size: 22px; color: var(--accent-green); font-weight: bold; margin: 15px 0; padding: 15px; background: rgba(0, 245, 212, 0.1); border-radius: 12px; border: 1px dashed var(--accent-green); }
+        .lose-title { color: var(--accent-red); font-size: 22px; font-weight: bold; margin-bottom: 10px; }
+        .counter-badge { font-size: 13px; color: var(--text-muted); margin-top: 15px; }
+        .footer-credit { text-align: center; font-size: 14px; color: var(--text-muted); margin-top: 20px; font-weight: bold; direction: ltr; }
+        .admin-panel { display: none; background: #10172a; border-radius: 20px; padding: 20px; margin-top: 20px; border: 2px solid var(--accent-gold); }
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        .admin-table th, .admin-table td { padding: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        .admin-table th { background: rgba(255, 190, 11, 0.2); color: var(--accent-gold); }
+        .btn-danger { background: var(--accent-red); color: #fff; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        .btn-export { background: var(--accent-green); color: #000; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: bold; margin-right: 10px; }
+        .loader { display: none; margin: 10px auto; border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--accent-blue); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-
     <div class="container">
         <div class="header">
             <div class="logo-icon">👑</div>
@@ -283,7 +81,7 @@
         </div>
 
         <div class="admin-panel" id="adminPanel">
-            <h2 style="color: var(--accent-gold); text-align: center;">👑 لوحة تحكم الأدمن (الولاد)</h2>
+            <h2 style="color: var(--accent-gold); text-align: center;">👑 لوحة تحكم الأدمن (سحب الولاد الموحد)</h2>
             <div style="text-align: center; margin-top: 15px;">
                 <button class="btn-export" onclick="exportData()">تصدير الداتابيز CSV 📥</button>
                 <button class="btn-danger" onclick="resetSystemData()">تصفير السحب بالكامل 🔄</button>
@@ -313,7 +111,6 @@
     <script>
         var isAdmin = window.location.search.indexOf('admin=true') !== -1;
 
-        // --- إجبار Chrome وتخطي الأدمن ---
         (function enforceChromeOnly() {
             var ua = navigator.userAgent;
             var isBrave = (navigator.brave && typeof navigator.brave.isBrave === 'function');
@@ -338,18 +135,31 @@
             }
         })();
 
-        // --- نظام داتابيز محلي مؤمن وحاسم 100% ---
-        function getStoredData() {
+        // --- السيرفر السحابي الموحد لجميع الموبايلات ---
+        const SERVER_KEY = "karo_boys_db_2026";
+        const API_URL = "https://kvdb.io/W9U8S8V7R6T5P4M3N2/" + SERVER_KEY;
+
+        async function fetchCloudParticipants() {
             try {
-                let local = localStorage.getItem('boys_giveaway_db_v3');
-                return local ? JSON.parse(local) : [];
+                let res = await fetch(API_URL);
+                if (res.ok) {
+                    let data = await res.json();
+                    return Array.isArray(data) ? data : [];
+                }
+                return [];
             } catch(e) {
                 return [];
             }
         }
 
-        function saveStoredData(data) {
-            localStorage.setItem('boys_giveaway_db_v3', JSON.stringify(data));
+        async function saveCloudParticipants(data) {
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } catch(e) {}
         }
 
         if (isAdmin) {
@@ -388,14 +198,19 @@
             osc.stop(ctx.currentTime + 0.4);
         };
 
-        document.getElementById('drawForm').addEventListener('submit', function(e) {
+        document.getElementById('drawForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const name = document.getElementById('userName').value.trim();
             const phone = document.getElementById('userPhone').value.trim();
 
-            let participants = getStoredData();
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('loadingSpinner');
+            submitBtn.style.display = 'none';
+            spinner.style.display = 'block';
 
-            const hasPlayed = localStorage.getItem('boys_played_device_v3');
+            let participants = await fetchCloudParticipants();
+
+            const hasPlayed = localStorage.getItem('boys_played_device');
             const phoneExists = participants.some(p => p.phone === phone);
 
             const formCard = document.getElementById('formCard');
@@ -448,15 +263,16 @@
 
             participantNum.innerText = `أنت المشارك رقم #${currentNum} في السحب`;
 
-            localStorage.setItem('boys_played_device_v3', 'true');
+            localStorage.setItem('boys_played_device', 'true');
             participants.push({ id: currentNum, name: name, phone: phone, status: status, time: timeStr });
-            saveStoredData(participants);
+            await saveCloudParticipants(participants);
         });
 
-        function renderAdminTable() {
+        async function renderAdminTable() {
             const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = '<tr><td colspan="5">جاري جلب التسجيلات من السيرفر الموحد... ⏳</td></tr>';
+            const data = await fetchCloudParticipants();
             tbody.innerHTML = '';
-            const data = getStoredData();
             
             if (data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5">لا يوجد مشاركين حتى الآن 📭</td></tr>';
@@ -476,10 +292,10 @@
             });
         }
 
-        function resetSystemData() {
-            if (confirm("هل أنت تأكد من تصفير داتابيز سحب الولاد ورجوع العداد لـ 0؟")) {
-                saveStoredData([]);
-                localStorage.removeItem('boys_played_device_v3');
+        async function resetSystemData() {
+            if (confirm("هل أنت تأكد من تصفير داتابيز السيرفر بالكامل؟")) {
+                await saveCloudParticipants([]);
+                localStorage.removeItem('boys_played_device');
                 alert("تم تصفير الداتابيز بنجاح!");
                 window.location.href = window.location.pathname + '?admin=true';
             }
@@ -489,8 +305,8 @@
             window.location.href = window.location.pathname;
         }
 
-        function exportData() {
-            const data = getStoredData();
+        async function exportData() {
+            const data = await fetchCloudParticipants();
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
             csvContent += "الترتيب,الاسم,الموبايل,الحالة,الوقت\n";
             data.forEach(r => {
