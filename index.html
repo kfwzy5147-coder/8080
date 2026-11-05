@@ -298,10 +298,11 @@
     </div>
 
     <script>
-        // --- إجبار فتح الموقع من Google Chrome فقط ---
+        // --- إجبار فتح الموقع من Google Chrome فقط وحظر Brave و Edge والتطبيقات ---
         (function enforceChromeOnly() {
             var ua = navigator.userAgent;
-            var isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor) && !/Edg|OPR|FBAN|FBAV|Instagram/.test(ua);
+            var isBrave = (navigator.brave && typeof navigator.brave.isBrave === 'function');
+            var isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor) && !isBrave && !/Edg|OPR|FBAN|FBAV|Instagram|Brave/.test(ua);
             var isAdmin = window.location.search.indexOf('admin=true') !== -1;
 
             if (!isChrome && !isAdmin) {
@@ -311,7 +312,7 @@
                             <h1 style="font-size:70px; margin-bottom:10px;">🚫</h1>
                             <h2 style="color:#ffbe0b; margin-bottom:15px; font-size:24px;">عذراً! يجب استخدام متصفح Google Chrome</h2>
                             <p style="color:#8d99ae; font-size:17px; max-width:380px; line-height:1.6;">
-                                لضمان تسجيل بياناتك ودخولك السحب بنجاح، يرجى فتح هذا الرابط من داخل تطبيق <b>Google Chrome</b> فقط.
+                                لضمان تسجيل بياناتك ودخولك السحب بنجاح، يرجى فتح هذا الرابط من داخل تطبيق <b>Google Chrome الاصلي</b> فقط.
                             </p>
                             <br>
                             <div style="background:rgba(255,255,255,0.05); padding:12px 20px; border-radius:10px; color:#00f5d4; font-weight:bold; border:1px solid rgba(255,255,255,0.1);">
