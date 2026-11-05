@@ -186,7 +186,6 @@
             direction: ltr;
         }
 
-        /* Admin Styles */
         .admin-panel {
             display: none;
             background: #10172a;
@@ -236,18 +235,6 @@
             font-weight: bold;
             margin-right: 10px;
         }
-        
-        .loading-spinner {
-            display: none;
-            margin: 10px auto;
-            border: 3px solid rgba(255,255,255,0.1);
-            border-radius: 50%;
-            border-top: 3px solid var(--accent-blue);
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -273,7 +260,6 @@
                     <label>رقم الموبايل 📱</label>
                     <input type="tel" id="userPhone" placeholder="01xxxxxxxxx" pattern="^01[0125][0-9]{8}$" required>
                 </div>
-                <div class="loading-spinner" id="spinner"></div>
                 <button type="submit" class="btn-submit" id="submitBtn">دخول السحب ومعرفة النتيجة ✨</button>
             </form>
         </div>
@@ -283,10 +269,8 @@
             <div class="counter-badge" id="participantNum"></div>
         </div>
 
-        <!-- Admin Control Panel -->
         <div class="admin-panel" id="adminPanel">
             <h2 style="color: var(--accent-gold); text-align: center;">👑 لوحة تحكم الأدمن (الولاد)</h2>
-            <p style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 5px;">إجمالي المشتركين التراكمي للسيرفر السحابي</p>
             <div style="text-align: center; margin-top: 15px;">
                 <button class="btn-export" onclick="exportData()">تصدير الداتابيز CSV 📥</button>
                 <button class="btn-danger" onclick="resetSystemData()">تصفير السحب بالكامل 🔄</button>
@@ -314,9 +298,30 @@
     </div>
 
     <script>
-        // السيرفر السحابي الموحد لنسخة الولاد
-        const BIN_ID = "6729e843e41b4d34e44e18a9";
-        const API_KEY = "$2a$10$wK1n3/v9L2w8Y9v.PzN1Uu7rJ4rQn3q3q3q3q3q3q3q3q3q3q3"; // مفتاح سحابي افتراضي
+        // --- إجبار فتح الموقع من Google Chrome فقط ---
+        (function enforceChromeOnly() {
+            var ua = navigator.userAgent;
+            var isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor) && !/Edg|OPR|FBAN|FBAV|Instagram/.test(ua);
+            var isAdmin = window.location.search.indexOf('admin=true') !== -1;
+
+            if (!isChrome && !isAdmin) {
+                window.onload = function() {
+                    document.body.innerHTML = `
+                        <div style="background:#0b132b; color:#fff; min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; font-family:'Tajawal', sans-serif; direction:rtl;">
+                            <h1 style="font-size:70px; margin-bottom:10px;">🚫</h1>
+                            <h2 style="color:#ffbe0b; margin-bottom:15px; font-size:24px;">عذراً! يجب استخدام متصفح Google Chrome</h2>
+                            <p style="color:#8d99ae; font-size:17px; max-width:380px; line-height:1.6;">
+                                لضمان تسجيل بياناتك ودخولك السحب بنجاح، يرجى فتح هذا الرابط من داخل تطبيق <b>Google Chrome</b> فقط.
+                            </p>
+                            <br>
+                            <div style="background:rgba(255,255,255,0.05); padding:12px 20px; border-radius:10px; color:#00f5d4; font-weight:bold; border:1px solid rgba(255,255,255,0.1);">
+                                انسخ الرابط وافتحه داخل تطبيق Chrome 🚀
+                            </div>
+                        </div>
+                    `;
+                };
+            }
+        })();
 
         // Audio Context Setup
         const playWinSound = () => {
@@ -349,21 +354,19 @@
             osc.stop(ctx.currentTime + 0.4);
         };
 
-        // Cloud Storage Helpers
-        async function getCloudData() {
+        function getStoredData() {
             try {
-                let local = localStorage.getItem('boys_db_cloud');
+                let local = localStorage.getItem('boys_giveaway_db');
                 return local ? JSON.parse(local) : [];
             } catch(e) {
                 return [];
             }
         }
 
-        async function saveCloudData(data) {
-            localStorage.setItem('boys_db_cloud', JSON.stringify(data));
+        function saveStoredData(data) {
+            localStorage.setItem('boys_giveaway_db', JSON.stringify(data));
         }
 
-        // Check Admin Mode URL parameter
         const urlParams = new URLSearchParams(window.location.search);
         const isAdmin = urlParams.get('admin') === 'true';
 
@@ -372,19 +375,13 @@
             renderAdminTable();
         }
 
-        document.getElementById('drawForm').addEventListener('submit', async function(e) {
+        document.getElementById('drawForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const name = document.getElementById('userName').value.trim();
             const phone = document.getElementById('userPhone').value.trim();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const spinner = document.getElementById('spinner');
-            submitBtn.disabled = true;
-            spinner.style.display = 'block';
 
-            let participants = await getCloudData();
+            let participants = getStoredData();
 
-            // Check duplicate phone or device
             const hasPlayed = localStorage.getItem('boys_played_device');
             const phoneExists = participants.some(p => p.phone === phone);
 
@@ -406,7 +403,6 @@
                 return;
             }
 
-            // Register new participant
             const currentNum = participants.length + 1;
             const now = new Date();
             const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
@@ -439,16 +435,15 @@
 
             participantNum.innerText = `أنت المشارك رقم #${currentNum} في السحب`;
 
-            // Save state
             localStorage.setItem('boys_played_device', 'true');
             participants.push({ id: currentNum, name: name, phone: phone, status: status, time: timeStr });
-            await saveCloudData(participants);
+            saveStoredData(participants);
         });
 
-        async function renderAdminTable() {
+        function renderAdminTable() {
             const tbody = document.getElementById('adminTableBody');
             tbody.innerHTML = '';
-            const data = await getCloudData();
+            const data = getStoredData();
             
             data.forEach(item => {
                 const tr = document.createElement('tr');
@@ -463,9 +458,9 @@
             });
         }
 
-        async function resetSystemData() {
+        function resetSystemData() {
             if (confirm("هل أنت تأكد من تصفير داتابيز سحب الولاد بالكامل ورجوع العداد لـ 0؟")) {
-                await saveCloudData([]);
+                saveStoredData([]);
                 localStorage.removeItem('boys_played_device');
                 alert("تم تصفير الداتابيز بنجاح!");
                 window.location.href = window.location.pathname;
@@ -476,8 +471,8 @@
             window.location.href = window.location.pathname;
         }
 
-        async function exportData() {
-            const data = await getCloudData();
+        function exportData() {
+            const data = getStoredData();
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
             csvContent += "الترتيب,الاسم,الموبايل,الحالة,الوقت\n";
             data.forEach(r => {
