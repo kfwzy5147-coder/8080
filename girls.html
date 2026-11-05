@@ -46,8 +46,6 @@
         .header {
             text-align: center;
             margin-bottom: 25px;
-            cursor: pointer;
-            user-select: none;
         }
 
         .logo-icon {
@@ -237,13 +235,24 @@
             font-weight: bold;
             margin-right: 10px;
         }
+
+        .loader {
+            display: none;
+            margin: 10px auto;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-left-color: var(--accent-pink);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- اضغطي مرتين هنا لفتح لوحة الأدمن -->
-        <div class="header" id="headerTitle" title="اضغط مرتين لفتح لوحة الأدمن">
+        <div class="header">
             <div class="logo-icon">👑</div>
             <h1>سحب البنات - أسرة القديس اغسطينوس</h1>
             <div class="subtitle">سحب الهدية الكبرى للبنات 🎁✨</div>
@@ -263,6 +272,7 @@
                     <label>رقم الموبايل 📱</label>
                     <input type="tel" id="userPhone" placeholder="01xxxxxxxxx" pattern="^01[0125][0-9]{8}$" required>
                 </div>
+                <div class="loader" id="loadingSpinner"></div>
                 <button type="submit" class="btn-submit" id="submitBtn">دخول السحب ومعرفة النتيجة ✨</button>
             </form>
         </div>
@@ -272,9 +282,8 @@
             <div class="counter-badge" id="participantNum"></div>
         </div>
 
-        <!-- لوحة التحكم للأدمن -->
         <div class="admin-panel" id="adminPanel">
-            <h2 style="color: var(--accent-gold); text-align: center;">👑 لوحة تحكم الأدمن (سحب البنات)</h2>
+            <h2 style="color: var(--accent-gold); text-align: center;">👑 لوحة تحكم الأدمن (البنات)</h2>
             <div style="text-align: center; margin-top: 15px;">
                 <button class="btn-export" onclick="exportData()">تصدير الداتابيز CSV 📥</button>
                 <button class="btn-danger" onclick="resetSystemData()">تصفير السحب بالكامل 🔄</button>
@@ -302,9 +311,9 @@
     </div>
 
     <script>
-        // --- حظر المتصفحات وإجبار Google Chrome فقط (يتم استثناء الأدمن تلقائياً) ---
-        var isAdmin = window.location.search.indexOf('admin=true') !== -1 || localStorage.getItem('girls_admin_logged') === 'true';
+        var isAdmin = window.location.search.indexOf('admin=true') !== -1;
 
+        // --- إجبار Google Chrome فقط ---
         (function enforceChromeOnly() {
             var ua = navigator.userAgent;
             var isBrave = (navigator.brave && typeof navigator.brave.isBrave === 'function');
@@ -329,26 +338,24 @@
             }
         })();
 
-        // --- فتح لوحة الأدمن عند الضغط مرتين على العنوان ---
-        document.getElementById('headerTitle').addEventListener('dblclick', function() {
-            let pass = prompt("ادخلي كلمة سر الأدمن:");
-            if (pass === "1234") {
-                localStorage.setItem('girls_admin_logged', 'true');
-                openAdminPanel();
-            } else if (pass !== null) {
-                alert("كلمة السر خاطئة!");
+        // --- نظام داتابيز محلي مؤمن وحاسم 100% ---
+        function getStoredData() {
+            try {
+                let local = localStorage.getItem('girls_giveaway_db_v3');
+                return local ? JSON.parse(local) : [];
+            } catch(e) {
+                return [];
             }
-        });
+        }
 
-        function openAdminPanel() {
-            document.getElementById('formCard').style.display = 'none';
-            document.getElementById('resultCard').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-            renderAdminTable();
+        function saveStoredData(data) {
+            localStorage.setItem('girls_giveaway_db_v3', JSON.stringify(data));
         }
 
         if (isAdmin) {
-            openAdminPanel();
+            document.getElementById('formCard').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            renderAdminTable();
         }
 
         const playWinSound = () => {
@@ -381,19 +388,6 @@
             osc.stop(ctx.currentTime + 0.4);
         };
 
-        function getStoredData() {
-            try {
-                let local = localStorage.getItem('girls_giveaway_db');
-                return local ? JSON.parse(local) : [];
-            } catch(e) {
-                return [];
-            }
-        }
-
-        function saveStoredData(data) {
-            localStorage.setItem('girls_giveaway_db', JSON.stringify(data));
-        }
-
         document.getElementById('drawForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const name = document.getElementById('userName').value.trim();
@@ -401,7 +395,7 @@
 
             let participants = getStoredData();
 
-            const hasPlayed = localStorage.getItem('girls_played_device');
+            const hasPlayed = localStorage.getItem('girls_played_device_v3');
             const phoneExists = participants.some(p => p.phone === phone);
 
             const formCard = document.getElementById('formCard');
@@ -454,7 +448,7 @@
 
             participantNum.innerText = `أنت المشاركة رقم #${currentNum} في السحب`;
 
-            localStorage.setItem('girls_played_device', 'true');
+            localStorage.setItem('girls_played_device_v3', 'true');
             participants.push({ id: currentNum, name: name, phone: phone, status: status, time: timeStr });
             saveStoredData(participants);
         });
@@ -483,16 +477,15 @@
         }
 
         function resetSystemData() {
-            if (confirm("هل أنت تأكدي من تصفير داتابيز سحب البنات بالكامل ورجوع العداد لـ 0؟")) {
+            if (confirm("هل أنت تأكدي من تصفير داتابيز سحب البنات ورجوع العداد لـ 0؟")) {
                 saveStoredData([]);
-                localStorage.removeItem('girls_played_device');
+                localStorage.removeItem('girls_played_device_v3');
                 alert("تم تصفير الداتابيز بنجاح!");
-                window.location.href = window.location.pathname;
+                window.location.href = window.location.pathname + '?admin=true';
             }
         }
 
         function logoutAdmin() {
-            localStorage.removeItem('girls_admin_logged');
             window.location.href = window.location.pathname;
         }
 
