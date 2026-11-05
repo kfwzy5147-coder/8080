@@ -235,6 +235,18 @@
             font-weight: bold;
             margin-right: 10px;
         }
+
+        .loader {
+            display: none;
+            margin: 10px auto;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-left-color: var(--accent-blue);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -260,6 +272,7 @@
                     <label>رقم الموبايل 📱</label>
                     <input type="tel" id="userPhone" placeholder="01xxxxxxxxx" pattern="^01[0125][0-9]{8}$" required>
                 </div>
+                <div class="loader" id="loadingSpinner"></div>
                 <button type="submit" class="btn-submit" id="submitBtn">دخول السحب ومعرفة النتيجة ✨</button>
             </form>
         </div>
@@ -270,7 +283,7 @@
         </div>
 
         <div class="admin-panel" id="adminPanel">
-            <h2 style="color: var(--accent-gold); text-align: center;">👑 لوحة تحكم الأدمن (الولاد)</h2>
+            <h2 style="color: var(--accent-gold); text-align: center;">👑 لوحة تحكم الأدمن (سحب الولاد السحابي)</h2>
             <div style="text-align: center; margin-top: 15px;">
                 <button class="btn-export" onclick="exportData()">تصدير الداتابيز CSV 📥</button>
                 <button class="btn-danger" onclick="resetSystemData()">تصفير السحب بالكامل 🔄</button>
@@ -298,7 +311,7 @@
     </div>
 
     <script>
-        // --- إجبار فتح الموقع من Google Chrome فقط وحظر Brave و Edge والتطبيقات ---
+        // --- حظر المتصفحات وإجبار Google Chrome فقط ---
         (function enforceChromeOnly() {
             var ua = navigator.userAgent;
             var isBrave = (navigator.brave && typeof navigator.brave.isBrave === 'function');
@@ -324,7 +337,37 @@
             }
         })();
 
-        // Audio Context Setup
+        // --- الربط بالسيرفر السحابي (Cloud Database) ---
+        const CLOUD_BIN_ID = "6729ef5ce41b4d34e44e1d51"; 
+        const API_URL = `https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}`;
+
+        async function fetchCloudParticipants() {
+            try {
+                let res = await fetch(API_URL + '/latest', {
+                    headers: { 'X-Master-Key': '$2a$10$wK1n3/v9L2w8Y9v.PzN1Uu7rJ4rQn3q3q3q3q3q3q3q3q3q3q3' }
+                });
+                let data = await res.json();
+                return data.record || [];
+            } catch (e) {
+                let local = localStorage.getItem('boys_giveaway_db_cloud');
+                return local ? JSON.parse(local) : [];
+            }
+        }
+
+        async function saveCloudParticipants(data) {
+            localStorage.setItem('boys_giveaway_db_cloud', JSON.stringify(data));
+            try {
+                await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': '$2a$10$wK1n3/v9L2w8Y9v.PzN1Uu7rJ4rQn3q3q3q3q3q3q3q3q3q3q3'
+                    },
+                    body: JSON.stringify(data)
+                });
+            } catch (e) {}
+        }
+
         const playWinSound = () => {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = ctx.createOscillator();
@@ -355,19 +398,6 @@
             osc.stop(ctx.currentTime + 0.4);
         };
 
-        function getStoredData() {
-            try {
-                let local = localStorage.getItem('boys_giveaway_db');
-                return local ? JSON.parse(local) : [];
-            } catch(e) {
-                return [];
-            }
-        }
-
-        function saveStoredData(data) {
-            localStorage.setItem('boys_giveaway_db', JSON.stringify(data));
-        }
-
         const urlParams = new URLSearchParams(window.location.search);
         const isAdmin = urlParams.get('admin') === 'true';
 
@@ -376,12 +406,17 @@
             renderAdminTable();
         }
 
-        document.getElementById('drawForm').addEventListener('submit', function(e) {
+        document.getElementById('drawForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const name = document.getElementById('userName').value.trim();
             const phone = document.getElementById('userPhone').value.trim();
 
-            let participants = getStoredData();
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('loadingSpinner');
+            submitBtn.style.display = 'none';
+            spinner.style.display = 'block';
+
+            let participants = await fetchCloudParticipants();
 
             const hasPlayed = localStorage.getItem('boys_played_device');
             const phoneExists = participants.some(p => p.phone === phone);
@@ -438,14 +473,20 @@
 
             localStorage.setItem('boys_played_device', 'true');
             participants.push({ id: currentNum, name: name, phone: phone, status: status, time: timeStr });
-            saveStoredData(participants);
+            await saveCloudParticipants(participants);
         });
 
-        function renderAdminTable() {
+        async function renderAdminTable() {
             const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = '<tr><td colspan="5">جاري تحميل داتابيز السيرفر... ⏳</td></tr>';
+            const data = await fetchCloudParticipants();
             tbody.innerHTML = '';
-            const data = getStoredData();
             
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">لا يوجد مشاركين حتى الآن 📭</td></tr>';
+                return;
+            }
+
             data.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -459,11 +500,11 @@
             });
         }
 
-        function resetSystemData() {
-            if (confirm("هل أنت تأكد من تصفير داتابيز سحب الولاد بالكامل ورجوع العداد لـ 0؟")) {
-                saveStoredData([]);
+        async function resetSystemData() {
+            if (confirm("هل أنت تأكد من تصفير داتابيز سحب الولاد بالسيرفر ورجوع العداد لـ 0؟")) {
+                await saveCloudParticipants([]);
                 localStorage.removeItem('boys_played_device');
-                alert("تم تصفير الداتابيز بنجاح!");
+                alert("تم تصفير الداتابيز السحابية بنجاح!");
                 window.location.href = window.location.pathname;
             }
         }
@@ -472,8 +513,8 @@
             window.location.href = window.location.pathname;
         }
 
-        function exportData() {
-            const data = getStoredData();
+        async function exportData() {
+            const data = await fetchCloudParticipants();
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
             csvContent += "الترتيب,الاسم,الموبايل,الحالة,الوقت\n";
             data.forEach(r => {
