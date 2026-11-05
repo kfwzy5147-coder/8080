@@ -6,6 +6,8 @@
     <title>سحب الولاد - أسرة القديس اغسطينوس</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         :root {
             --bg-primary: #0b132b;
@@ -17,6 +19,7 @@
             --text-main: #ffffff;
             --text-muted: #8d99ae;
         }
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px; background-image: radial-gradient(circle at 50% 50%, #1c2541 0%, #0b132b 100%); }
         .container { width: 100%; max-width: 480px; margin: 0 auto; }
@@ -36,7 +39,7 @@
         .win-title { color: var(--accent-gold); font-size: 26px; font-weight: 900; margin-bottom: 10px; }
         .win-prize { font-size: 22px; color: var(--accent-green); font-weight: bold; margin: 15px 0; padding: 15px; background: rgba(0, 245, 212, 0.1); border-radius: 12px; border: 1px dashed var(--accent-green); }
         .lose-title { color: var(--accent-red); font-size: 22px; font-weight: bold; margin-bottom: 10px; }
-        .counter-badge { font-size: 13px; color: var(--text-muted); margin-top: 15px; }
+        .counter-badge { font-size: 14px; color: var(--accent-gold); margin-top: 15px; font-weight: bold; }
         .footer-credit { text-align: center; font-size: 14px; color: var(--text-muted); margin-top: 20px; font-weight: bold; direction: ltr; }
         .admin-panel { display: none; background: #10172a; border-radius: 20px; padding: 20px; margin-top: 20px; border: 2px solid var(--accent-gold); }
         .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
@@ -66,10 +69,6 @@
                     <label>الاسم الثلاثي 👤</label>
                     <input type="text" id="userName" placeholder="ادخل اسمك بالكامل" required>
                 </div>
-                <div class="form-group">
-                    <label>رقم الموبايل 📱</label>
-                    <input type="tel" id="userPhone" placeholder="01xxxxxxxxx" pattern="^01[0125][0-9]{8}$" required>
-                </div>
                 <div class="loader" id="loadingSpinner"></div>
                 <button type="submit" class="btn-submit" id="submitBtn">دخول السحب ومعرفة النتيجة ✨</button>
             </form>
@@ -81,9 +80,9 @@
         </div>
 
         <div class="admin-panel" id="adminPanel">
-            <h2 style="color: var(--accent-gold); text-align: center;">👑 لوحة تحكم الأدمن (سحب الولاد الموحد)</h2>
+            <h2 style="color: var(--accent-gold); text-align: center;">👑 لوحة تحكم الأدمن (سحب الولاد)</h2>
             <div style="text-align: center; margin-top: 15px;">
-                <button class="btn-export" onclick="exportData()">تصدير الداتابيز CSV 📥</button>
+                <button class="btn-export" onclick="exportData()">تصدير البيانات CSV 📥</button>
                 <button class="btn-danger" onclick="resetSystemData()">تصفير السحب بالكامل 🔄</button>
                 <button class="btn-danger" style="background:#555" onclick="logoutAdmin()">خروج من الأدمن 🚪</button>
             </div>
@@ -93,7 +92,6 @@
                         <tr>
                             <th>#</th>
                             <th>الاسم</th>
-                            <th>الموبايل</th>
                             <th>الحالة</th>
                             <th>الوقت</th>
                         </tr>
@@ -111,6 +109,7 @@
     <script>
         var isAdmin = window.location.search.indexOf('admin=true') !== -1;
 
+        // --- حظر المتصفحات وإجبار Google Chrome ---
         (function enforceChromeOnly() {
             var ua = navigator.userAgent;
             var isBrave = (navigator.brave && typeof navigator.brave.isBrave === 'function');
@@ -135,31 +134,23 @@
             }
         })();
 
-        // --- السيرفر السحابي الموحد لجميع الموبايلات ---
-        const SERVER_KEY = "karo_boys_db_2026";
-        const API_URL = "https://kvdb.io/W9U8S8V7R6T5P4M3N2/" + SERVER_KEY;
+        // --- إعداد قاعدة بيانات Firebase الموحدة للجميع ---
+        const firebaseConfig = {
+            databaseURL: "https://augustine-draw-default-rtdb.firebaseio.com/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database().ref('boys_giveaway_v5');
 
-        async function fetchCloudParticipants() {
-            try {
-                let res = await fetch(API_URL);
-                if (res.ok) {
-                    let data = await res.json();
-                    return Array.isArray(data) ? data : [];
-                }
-                return [];
-            } catch(e) {
-                return [];
-            }
-        }
-
-        async function saveCloudParticipants(data) {
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-            } catch(e) {}
+        function fetchCloudParticipants() {
+            return new Promise((resolve) => {
+                db.once('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (!data) resolve([]);
+                    const list = Object.values(data);
+                    list.sort((a, b) => a.id - b.id);
+                    resolve(list);
+                }, () => resolve([]));
+            });
         }
 
         if (isAdmin) {
@@ -201,7 +192,6 @@
         document.getElementById('drawForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const name = document.getElementById('userName').value.trim();
-            const phone = document.getElementById('userPhone').value.trim();
 
             const submitBtn = document.getElementById('submitBtn');
             const spinner = document.getElementById('loadingSpinner');
@@ -210,8 +200,8 @@
 
             let participants = await fetchCloudParticipants();
 
-            const hasPlayed = localStorage.getItem('boys_played_device');
-            const phoneExists = participants.some(p => p.phone === phone);
+            const hasPlayed = localStorage.getItem('boys_played_device_v5');
+            const nameExists = participants.some(p => p.name.toLowerCase() === name.toLowerCase());
 
             const formCard = document.getElementById('formCard');
             const resultCard = document.getElementById('resultCard');
@@ -221,13 +211,13 @@
             formCard.style.display = 'none';
             resultCard.style.display = 'block';
 
-            if (hasPlayed || phoneExists) {
+            if (hasPlayed || nameExists) {
                 playLoseSound();
                 resultContent.innerHTML = `
                     <div class="lose-title">⚠️ محاولة مكررة</div>
-                    <p style="color: var(--text-muted); font-size: 18px;">حاول الاجتماع الجاي</p>
+                    <p style="color: var(--text-muted); font-size: 18px;">تم تسجيل هذا الاسم أو الجهاز سابقاً!</p>
                 `;
-                participantNum.innerText = `رقم الهاتف أو الجهاز تم تسجيله سابقاً`;
+                participantNum.innerText = `حاول الاجتماع الجاي 🤝`;
                 return;
             }
 
@@ -261,21 +251,20 @@
                 `;
             }
 
-            participantNum.innerText = `أنت المشارك رقم #${currentNum} في السحب`;
+            participantNum.innerText = `أنت المشارك رقم #${currentNum} في السحب الموحد`;
 
-            localStorage.setItem('boys_played_device', 'true');
-            participants.push({ id: currentNum, name: name, phone: phone, status: status, time: timeStr });
-            await saveCloudParticipants(participants);
+            localStorage.setItem('boys_played_device_v5', 'true');
+            await db.push({ id: currentNum, name: name, status: status, time: timeStr });
         });
 
         async function renderAdminTable() {
             const tbody = document.getElementById('adminTableBody');
-            tbody.innerHTML = '<tr><td colspan="5">جاري جلب التسجيلات من السيرفر الموحد... ⏳</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4">جاري جلب التسجيلات الحية... ⏳</td></tr>';
             const data = await fetchCloudParticipants();
             tbody.innerHTML = '';
             
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5">لا يوجد مشاركين حتى الآن 📭</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4">لا يوجد مشاركين حتى الآن 📭</td></tr>';
                 return;
             }
 
@@ -284,7 +273,6 @@
                 tr.innerHTML = `
                     <td>${item.id}</td>
                     <td>${item.name}</td>
-                    <td>${item.phone}</td>
                     <td style="color: ${item.id === 18 ? 'var(--accent-gold)' : '#fff'}; font-weight: bold;">${item.status}</td>
                     <td>${item.time}</td>
                 `;
@@ -293,9 +281,9 @@
         }
 
         async function resetSystemData() {
-            if (confirm("هل أنت تأكد من تصفير داتابيز السيرفر بالكامل؟")) {
-                await saveCloudParticipants([]);
-                localStorage.removeItem('boys_played_device');
+            if (confirm("هل أنت تأكد من تصفير داتابيز السحب بالكامل ورجوع العداد لـ 0؟")) {
+                await db.remove();
+                localStorage.removeItem('boys_played_device_v5');
                 alert("تم تصفير الداتابيز بنجاح!");
                 window.location.href = window.location.pathname + '?admin=true';
             }
@@ -308,9 +296,9 @@
         async function exportData() {
             const data = await fetchCloudParticipants();
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-            csvContent += "الترتيب,الاسم,الموبايل,الحالة,الوقت\n";
+            csvContent += "الترتيب,الاسم,الحالة,الوقت\n";
             data.forEach(r => {
-                csvContent += `${r.id},"${r.name}","${r.phone}","${r.status}","${r.time}"\n`;
+                csvContent += `${r.id},"${r.name}","${r.status}","${r.time}"\n`;
             });
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
